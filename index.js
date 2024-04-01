@@ -68,29 +68,9 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("this is ira fashion Database");
+  res.send("The Ira fashion Database");
 });
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
-
-// // Define a route to handle POST requests to add products
-// app.post("/products", async (req, res) => {
-//   try {
-//     // Extract products array from request body
-//     // const products = req.body;
-
-//     // Insert the array of products into the MongoDB collection
-//     const result = await client
-//       .db("productsDb")
-//       .collection("products")
-//       .insertMany(products);
-
-//     // Respond with the newly created products
-//     res.status(201).json(result.ops);
-//   } catch (error) {
-//     console.error("Error adding products:", error);
-//     res.status(500).json({ error: "Failed to add products" });
-//   }
-// });
