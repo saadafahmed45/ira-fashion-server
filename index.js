@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 // middelware
@@ -53,6 +53,16 @@ async function run() {
       const result = await productCollection.insertOne(product);
       res.send(result);
       console.log(result);
+    });
+
+    // Delete the first document in  collection
+
+    app.delete("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log("delete id ", id);
+      const query = { _id: new ObjectId(id) };
+      const result = await productCollection.deleteOne(query);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
