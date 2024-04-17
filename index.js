@@ -20,7 +20,7 @@ const dbPassword = process.env.DB_PASS;
 
 console.log(dbUserName, dbPassword);
 
-const uri = `mongodb+srv://${dbUserName}:${dbPassword}@cluster0.58zpnyp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://saadafahmed45:Swg9Q3gK7WUTcMGu@cluster0.58zpnyp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
