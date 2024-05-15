@@ -9,10 +9,7 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
-// saadafahmed45;
-// Swg9Q3gK7WUTcMGu;
 // mongodb setting here
-// env
 
 const port = process.env.PORT || 5000;
 const dbUserName = process.env.DB_USER;
@@ -20,7 +17,7 @@ const dbPassword = process.env.DB_PASS;
 
 console.log(dbUserName, dbPassword);
 
-const uri = `mongodb+srv://saadafahmed45:Swg9Q3gK7WUTcMGu@cluster0.58zpnyp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://${dbUserName}:${dbPassword}@cluster0.58zpnyp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -72,6 +69,30 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await productCollection.deleteOne(query);
       res.send(result);
+    });
+
+    // update
+
+    app.put("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const product = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const option = { upsert: true };
+      const updateProduct = {
+        $set: {
+          name: product.name,
+          des: product.des,
+          price: product.price,
+          link: product.link,
+        },
+      };
+      const result = await productCollection.updateOne(
+        filter,
+        updateProduct,
+        option
+      );
+      res.send(result);
+      console.log();
     });
 
     // Send a ping to confirm a successful connection
