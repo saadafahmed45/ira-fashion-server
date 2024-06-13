@@ -34,11 +34,18 @@ async function run() {
     await client.connect();
     const database = client.db("productsDb");
     const productCollection = database.collection("products");
+    const ordersCollection = database.collection("orders");
 
     // get
 
     app.get("/products", async (req, res) => {
       const cusor = productCollection.find();
+      const result = await cusor.toArray();
+      res.send(result);
+    });
+
+      app.get("/orders", async (req, res) => {
+      const cusor = ordersCollection.find();
       const result = await cusor.toArray();
       res.send(result);
     });
@@ -52,6 +59,13 @@ async function run() {
       res.send(result);
     });
 
+     app.get("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await ordersCollection.findOne(query);
+      res.send(result);
+    });
+
     // post
 
     app.post("/products", async (req, res) => {
@@ -61,6 +75,13 @@ async function run() {
       console.log(result);
     });
 
+
+      app.post("/orders", async (req, res) => {
+      const product = req.body;
+      const result = await ordersCollection.insertOne(product);
+      res.send(result);
+      console.log(result);
+    });
     // Delete the first document in  collection
 
     app.delete("/products/:id", async (req, res) => {
@@ -71,6 +92,13 @@ async function run() {
       res.send(result);
     });
 
+      app.delete("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log("delete id ", id);
+      const query = { _id: new ObjectId(id) };
+      const result = await ordersCollection.deleteOne(query);
+      res.send(result);
+    });
     // update
 
     app.put("/products/:id", async (req, res) => {
