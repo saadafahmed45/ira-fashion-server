@@ -123,6 +123,30 @@ async function run() {
       console.log();
     });
 
+
+    // order
+
+app.put("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const order = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const option = { upsert: true };
+      const updateOrder = {
+        $set: {
+          status: order.status,
+      
+        },
+      };
+      const result = await ordersCollection.updateOne(
+        filter,
+        updateOrder,
+        option
+      );
+      res.send(result);
+      console.log(result);
+    });
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
