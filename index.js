@@ -44,7 +44,7 @@ async function run() {
       res.send(result);
     });
 
-      app.get("/orders", async (req, res) => {
+    app.get("/orders", async (req, res) => {
       const cusor = ordersCollection.find();
       const result = await cusor.toArray();
       res.send(result);
@@ -59,11 +59,27 @@ async function run() {
       res.send(result);
     });
 
-     app.get("/orders/:id", async (req, res) => {
+    app.get("/orders/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await ordersCollection.findOne(query);
       res.send(result);
+    });
+
+    // get releted product
+    app.get("/products/:id/related", async (req, res) => {
+      try {
+        const product = await productCollection.findById(req.params.id);
+        const relatedProducts = await productCollection
+          .find({
+            category: product.category,
+            _id: { $ne: product._id }, // Exclude the current product
+          })
+          .limit(4); // Limit the number of related products
+        res.json(relatedProducts);
+      } catch (error) {
+        res.status(500).json({ message: error.message });
+      }
     });
 
     // post
@@ -75,8 +91,7 @@ async function run() {
       console.log(result);
     });
 
-
-      app.post("/orders", async (req, res) => {
+    app.post("/orders", async (req, res) => {
       const product = req.body;
       const result = await ordersCollection.insertOne(product);
       res.send(result);
@@ -92,7 +107,7 @@ async function run() {
       res.send(result);
     });
 
-      app.delete("/orders/:id", async (req, res) => {
+    app.delete("/orders/:id", async (req, res) => {
       const id = req.params.id;
       console.log("delete id ", id);
       const query = { _id: new ObjectId(id) };
@@ -111,7 +126,7 @@ async function run() {
           name: product.name,
           des: product.des,
           price: product.price,
-         photoUrl: product.photoUrl,
+          photoUrl: product.photoUrl,
         },
       };
       const result = await productCollection.updateOne(
@@ -123,10 +138,9 @@ async function run() {
       console.log();
     });
 
-
     // order
 
-app.put("/orders/:id", async (req, res) => {
+    app.put("/orders/:id", async (req, res) => {
       const id = req.params.id;
       const order = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -134,7 +148,6 @@ app.put("/orders/:id", async (req, res) => {
       const updateOrder = {
         $set: {
           status: order.status,
-      
         },
       };
       const result = await ordersCollection.updateOne(
@@ -145,7 +158,6 @@ app.put("/orders/:id", async (req, res) => {
       res.send(result);
       console.log(result);
     });
-
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
