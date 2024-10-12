@@ -66,16 +66,24 @@ async function run() {
       res.send(result);
     });
 
-    // get releted product
     app.get("/products/:id/related", async (req, res) => {
       try {
-        const product = await productCollection.findById(req.params.id);
+        const productId = new ObjectId(req.params.id);
+        const product = await productCollection.findOne({ _id: productId });
+
+        if (!product) {
+          return res.status(404).json({ message: "Product not found" });
+        }
+
+        // Query for related products based on category, excluding the current product
         const relatedProducts = await productCollection
           .find({
             category: product.category,
-            _id: { $ne: product._id }, // Exclude the current product
+            _id: { $ne: productId }, // Exclude the current product by ID
           })
-          .limit(4); // Limit the number of related products
+          .limit(4) // Limit the number of related products
+          .toArray(); // Convert the cursor to an array
+
         res.json(relatedProducts);
       } catch (error) {
         res.status(500).json({ message: error.message });
