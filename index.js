@@ -353,6 +353,89 @@ async function run() {
       }
     });
 
+
+
+
+    // =========================
+// 🔥 ORDERS API FULL
+// =========================
+
+const orderCollection = db.collection("orders");
+
+// Create Order
+app.post("/orders", async (req, res) => {
+  try {
+    const order = {
+      customerName: req.body.customerName,
+      email: req.body.email,
+      products: req.body.products || [],
+      totalPrice: Number(req.body.totalPrice) || 0,
+      status: "Pending",
+      createdAt: new Date(),
+    };
+
+    const result = await orderCollection.insertOne(order);
+
+    res.status(201).json({
+      success: true,
+      insertedId: result.insertedId,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Order failed",
+      error: err.message,
+    });
+  }
+});
+
+// Get Orders
+app.get("/orders", async (req, res) => {
+  try {
+    const orders = await orderCollection
+      .find()
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch orders",
+    });
+  }
+});
+
+// Update Order Status
+app.patch("/orders/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const result = await orderCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { status: req.body.status } }
+    );
+
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({
+      message: "Update failed",
+    });
+  }
+});
+
+// Delete Order (optional)
+app.delete("/orders/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const result = await orderCollection.deleteOne({
+      _id: new ObjectId(id),
+    });
+
+    res.json({ success: true, result });
+  } catch {
+    res.status(500).json({ message: "Delete failed" });
+  }
+});
     // =========================
     // 🔥 STATS ENDPOINT
     // =========================
