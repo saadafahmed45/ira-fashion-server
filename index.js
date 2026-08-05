@@ -1,20 +1,29 @@
 require("dotenv").config();
 const app = require("./src/app");
-const connectDB = async () => {
+const connectDB = require("./src/config/db");
+
+// Serverless DB Connection Middleware for Vercel
+app.use(async (req, res, next) => {
   try {
-    const db = require("./src/config/db");
-    await db();
-  } catch (error) {
-    console.error("Database connection failed. Exiting...", error);
-    process.exit(1);
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Database connection failed",
+      error: err.message,
+    });
   }
-};
-
-const port = process.env.PORT || 5000;
-
-// Connect to MongoDB Database before starting the listener
-connectDB().then(() => {
-  app.listen(port, () => {
-    console.log(`🚀 Server running in ${process.env.NODE_ENV || "development"} mode on port ${port}`);
-  });
 });
+
+// For local server execution (npm run dev / node index.js)
+if (require.main === module) {
+  const port = process.env.PORT || 5000;
+  connectDB().then(() => {
+    app.listen(port, () => {
+      console.log(`🚀 Server running in ${process.env.NODE_ENV || "development"} mode on port ${port}`);
+    });
+  });
+}
+
+module.exports = app;
