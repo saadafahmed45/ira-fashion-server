@@ -52,6 +52,23 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const connectDB = require("./config/db");
+
+// DB Connection Middleware for Serverless (Vercel)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      statusCode: 500,
+      message: "Database connection failed",
+      error: err.message,
+    });
+  }
+});
+
 // Apply rate limiting
 app.use("/api/", apiLimiter);
 

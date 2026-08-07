@@ -20,6 +20,8 @@ function sanitizeProductData(rawData) {
       compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : undefined,
       stock: Number(v.stock) || 0,
       sku: v.sku || "",
+      image: v.image || undefined,
+      imageIndex: v.imageIndex !== undefined && v.imageIndex !== null ? Number(v.imageIndex) : undefined,
       options: v.options || {},
     }));
   }
@@ -89,6 +91,16 @@ class ProductService {
     const sanitizedData = sanitizeProductData(productData);
     const imageUrls = uploadedFiles.map((f) => f.path);
 
+    // Map variant imageIndex to uploaded image URLs if provided
+    if (sanitizedData.variants && imageUrls.length > 0) {
+      sanitizedData.variants = sanitizedData.variants.map((v) => {
+        if (v.imageIndex !== undefined && imageUrls[v.imageIndex]) {
+          return { ...v, image: imageUrls[v.imageIndex] };
+        }
+        return v;
+      });
+    }
+
     const data = {
       ...sanitizedData,
       ...(imageUrls.length > 0 && { images: imageUrls }),
@@ -117,8 +129,21 @@ class ProductService {
     const uploadedImages = uploadedFiles.map((f) => f.path);
     const updatedData = { ...sanitizedData };
 
+    const allImages = uploadedImages.length > 0
+      ? [...(existingProduct.images || []), ...uploadedImages]
+      : existingProduct.images || [];
+
     if (uploadedImages.length > 0) {
-      updatedData.images = [...(existingProduct.images || []), ...uploadedImages];
+      updatedData.images = allImages;
+    }
+
+    if (updatedData.variants && allImages.length > 0) {
+      updatedData.variants = updatedData.variants.map((v) => {
+        if (v.imageIndex !== undefined && allImages[v.imageIndex]) {
+          return { ...v, image: allImages[v.imageIndex] };
+        }
+        return v;
+      });
     }
 
     const oldCollectionIds = (existingProduct.collectionIds || []).map((cId) =>
