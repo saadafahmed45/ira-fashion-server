@@ -8,11 +8,29 @@ class CollectionRepository {
   }
 
   async findByIdOrSlug(idOrSlug) {
+    const slugify = require("slugify");
     const isObjectId = idOrSlug.match(/^[0-9a-fA-F]{24}$/);
+    let collection = null;
+
     if (isObjectId) {
-      return await Collection.findById(idOrSlug).populate("productIds");
+      collection = await Collection.findById(idOrSlug).populate("productIds");
     }
-    return await Collection.findOne({ slug: idOrSlug }).populate("productIds");
+
+    if (!collection) {
+      collection = await Collection.findOne({ slug: idOrSlug }).populate("productIds");
+    }
+
+    if (!collection) {
+      const allCollections = await Collection.find().populate("productIds");
+      const targetSlug = slugify(idOrSlug, { lower: true, strict: true });
+      collection = allCollections.find(
+        (c) =>
+          c.slug === idOrSlug ||
+          (c.name && slugify(c.name, { lower: true, strict: true }) === targetSlug)
+      );
+    }
+
+    return collection;
   }
 
   async create(data) {
