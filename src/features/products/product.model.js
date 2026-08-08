@@ -111,6 +111,11 @@ const productSchema = new mongoose.Schema(
   }
 );
 
+// Compound indexes for fast query execution
+productSchema.index({ status: 1, createdAt: -1 });
+productSchema.index({ status: 1, vendor: 1, createdAt: -1 });
+productSchema.index({ status: 1, price: 1 });
+
 // Pre-save hook to generate product slug automatically
 productSchema.pre("save", function () {
   if (this.isModified("title")) {

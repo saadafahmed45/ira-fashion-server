@@ -50,7 +50,15 @@ class QueryBuilder {
     return this;
   }
 
-  // 3. Sorting query builder
+  // 3. Select specific fields for small API payload
+  selectFields(fields) {
+    if (fields) {
+      this.selectedFields = Array.isArray(fields) ? fields.join(" ") : fields;
+    }
+    return this;
+  }
+
+  // 4. Sorting query builder
   sort() {
     if (this.query) {
       if (this.queryParams.sort) {
@@ -73,14 +81,19 @@ class QueryBuilder {
     // Start with the filtered query
     this.query = this.model.find(this.filter);
 
+    // Apply field selection if specified
+    if (this.selectedFields) {
+      this.query = this.query.select(this.selectedFields);
+    }
+
     // Apply sort
     this.sort();
 
     // Clone query for counting total documents
     const totalDocs = await this.model.countDocuments(this.filter);
 
-    // Apply pagination
-    this.query = this.query.skip(skip).limit(limit);
+    // Apply pagination and lean execution
+    this.query = this.query.skip(skip).limit(limit).lean();
 
     // Run query
     const data = await this.query;

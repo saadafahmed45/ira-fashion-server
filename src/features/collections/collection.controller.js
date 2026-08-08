@@ -7,7 +7,7 @@ const asyncHandler = require("../../utils/asyncHandler");
  * Get all collections
  */
 const getCollections = asyncHandler(async (req, res) => {
-  const collections = await Collection.find().sort("-createdAt");
+  const collections = await Collection.find().sort("-createdAt").lean();
   return ApiResponse.success(res, collections, "Collections fetched successfully");
 });
 
@@ -18,10 +18,15 @@ const getCollectionById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   let collection;
+  const populateOpts = {
+    path: "productIds",
+    select: "title slug price compareAtPrice vendor images stock status",
+  };
+
   if (id.match(/^[0-9a-fA-F]{24}$/)) {
-    collection = await Collection.findById(id).populate("productIds");
+    collection = await Collection.findById(id).populate(populateOpts).lean();
   } else {
-    collection = await Collection.findOne({ slug: id }).populate("productIds");
+    collection = await Collection.findOne({ slug: id }).populate(populateOpts).lean();
   }
 
   if (!collection) {

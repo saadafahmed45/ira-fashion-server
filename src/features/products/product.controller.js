@@ -11,6 +11,10 @@ const getProducts = asyncHandler(async (req, res) => {
   const allowedFilters = ["status", "productType", "vendor", "collectionIds"];
   const builder = new QueryBuilder(Product, req.query);
 
+  if (req.query.fields) {
+    builder.selectFields(req.query.fields);
+  }
+
   const results = await builder
     .search(["title", "description", "vendor", "productType"])
     .filterByFields(allowedFilters)
@@ -28,9 +32,9 @@ const getProductById = asyncHandler(async (req, res) => {
   let product;
   // Check if param is valid mongoose ObjectId, else find by slug
   if (id.match(/^[0-9a-fA-F]{24}$/)) {
-    product = await Product.findById(id).populate("collectionIds", "name slug");
+    product = await Product.findById(id).populate("collectionIds", "name slug imageUrl").lean();
   } else {
-    product = await Product.findOne({ slug: id }).populate("collectionIds", "name slug");
+    product = await Product.findOne({ slug: id }).populate("collectionIds", "name slug imageUrl").lean();
   }
 
   if (!product) {
