@@ -5,23 +5,24 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 
-const { apiLimiter } = require("./common/middleware/rateLimit.middleware");
-const errorHandler = require("./common/middleware/error.middleware");
+const errorMiddleware = require("./middleware/errorMiddleware");
 
-// Import Modular Routes
-const authRoutes = require("./modules/auth/auth.routes");
-const productRoutes = require("./modules/products/product.routes");
-const orderRoutes = require("./modules/orders/order.routes");
-const collectionRoutes = require("./modules/collections/collection.routes");
-const wishlistRoutes = require("./modules/wishlist/wishlist.routes");
-const adminRoutes = require("./modules/admin/admin.routes");
+// Import Consolidated Feature Routes
+const authRoutes = require("./routes/authRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
+const productRoutes = require("./routes/productRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+const couponRoutes = require("./routes/couponRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
+const userRoutes = require("./routes/userRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
 // Security Headers
 app.use(helmet());
 
-// CORS Whitelist
+// CORS Configuration with Credentials support for Cookies
 const allowedOrigins = [
   "http://localhost:3000",
   "https://ira-fashion.vercel.app",
@@ -30,7 +31,6 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow non-browser requests (Postman/curl) or allowed origins or any vercel.app domain
     if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
       callback(null, true);
     } else {
@@ -42,7 +42,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// HTTP Request Logger
+// HTTP Request Logger in development
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
@@ -52,9 +52,10 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Connect to MongoDB
 const connectDB = require("./config/db");
 
-// DB Connection Middleware for Serverless (Vercel)
+// DB Connection Middleware
 app.use(async (req, res, next) => {
   try {
     await connectDB();
@@ -69,26 +70,26 @@ app.use(async (req, res, next) => {
   }
 });
 
-// Apply rate limiting
-app.use("/api/", apiLimiter);
-
 // API v1 Routes
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/orders", orderRoutes);
-app.use("/api/v1/collections", collectionRoutes);
-app.use("/api/v1/wishlist", wishlistRoutes);
-app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/coupons", couponRoutes);
+app.use("/api/v1/reviews", reviewRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/admin/customers", userRoutes);
+app.use("/api/v1/upload", uploadRoutes);
 
-// Health Check
+// Root Health Check
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Ira's Fashion Headless eCommerce API v1.0.0 is live 🚀",
+    message: "Ira Fashion Headless eCommerce API v1.0.0 is live 🚀",
   });
 });
 
-// Fallback for unmatched routes
+// Fallback 404 for unmatched endpoints
 app.use("*", (req, res) => {
   res.status(404).json({
     success: false,
@@ -97,7 +98,7 @@ app.use("*", (req, res) => {
   });
 });
 
-// Error Handler
-app.use(errorHandler);
+// Centralized Error Handler
+app.use(errorMiddleware);
 
 module.exports = app;
